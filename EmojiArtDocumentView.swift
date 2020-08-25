@@ -9,7 +9,7 @@
 import SwiftUI
 
 struct EmojiArtDocumentView: View {
-    var emojiArt: EmojiArtDocument
+    @ObservedObject var document: EmojiArtDocument
     var body: some View {
         VStack {
             HStack {
@@ -19,9 +19,17 @@ struct EmojiArtDocumentView: View {
                 }
             }
             Color.green
+                .overlay(
+                    Group {
+                        if self.document.backgroundImage != nil {
+                            Image(uiImage: self.document.backgroundImage!)
+                                //.resizable()
+                        }
+                    }
+                )
                 .edgesIgnoringSafeArea([.bottom, .horizontal])
                 .onDrop(of: ["public.image"], isTargeted: nil) { providers, location in
-                    return true
+                    return self.drop(providers: providers, location: location)
                 }
         }
     }
@@ -30,12 +38,17 @@ struct EmojiArtDocumentView: View {
     
     func drop(providers: [NSItemProvider], location: CGPoint) -> Bool {
         // set background image url.
-        return true
+        for provider in providers {
+            _ = provider.loadObject(ofClass: URL.self, completionHandler: {url, _  in
+                self.document.setBackgroundImageURL(url: url)
+            })
+        }
+        return false
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        EmojiArtDocumentView(emojiArt: EmojiArtDocument())
+        EmojiArtDocumentView(document: EmojiArtDocument())
     }
 }
