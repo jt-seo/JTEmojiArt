@@ -14,6 +14,12 @@ struct EmojiArtDocumentView: View {
     @State private var steadyZoomScale: CGFloat = 1.0
     @GestureState private var gestureZoomScale: CGFloat = 1.0
     
+    @State private var steadyPanOffset: CGSize = .zero
+    @GestureState private var gesturePanOffset: CGSize = .zero
+    private var panOffset: CGSize {
+        (gesturePanOffset + steadyPanOffset) * zoomScale
+    }
+    
     private var zoomScale: CGFloat {
         return steadyZoomScale * gestureZoomScale
     }
@@ -35,6 +41,7 @@ struct EmojiArtDocumentView: View {
                     Color.white
                         .overlay(OptionalImage(image: self.document.backgroundImage)
                             .scaleEffect(self.zoomScale)
+                            .offset(self.panOffset)
                         )
                         .edgesIgnoringSafeArea([.bottom, .horizontal])
                         .onDrop(of: ["public.image", "public.plain-text"], isTargeted: nil) { providers, location in
@@ -50,10 +57,12 @@ struct EmojiArtDocumentView: View {
                             .animatableSystemFont(size: self.document.fontSize(for: emoji) * self.zoomScale)
                     }
                 }
-                .clipped()
+                .gesture(self.panToMoveDocument())
                 .gesture(self.doubleTapToZoom(size: geometry.size))
-                .gesture(self.gestureZoom())
             }
+            .clipped()
+            .gesture(self.gestureZoom())
+
             Button("Reset") {
                 self.reset()
             }
@@ -93,6 +102,7 @@ struct EmojiArtDocumentView: View {
             let vZoom = size.height / image.size.height
             steadyZoomScale = toggleFitToWindow ? max(hZoom, vZoom) : min(hZoom, vZoom)
             toggleFitToWindow.toggle()
+            steadyPanOffset = .zero
         }
     }
     
@@ -102,7 +112,7 @@ struct EmojiArtDocumentView: View {
                 gestureZoomScale = latestScale
         }
             .onEnded { finalScale in
-                print("MagnificationZoom ended.")
+                print("MagnificationZoom ended. scale: \(self.steadyZoomScale), \(self.gestureZoomScale)")
                 self.steadyZoomScale *= finalScale
         }
     }
@@ -110,6 +120,17 @@ struct EmojiArtDocumentView: View {
     func resetZoomScale() {
         steadyZoomScale = 1.0
         toggleFitToWindow = false
+    }
+    
+    func panToMoveDocument() -> some Gesture {
+        return DragGesture()
+            .updating($gesturePanOffset) { dragInfo, gesturePanOffset, transaction in
+                gesturePanOffset = dragInfo.translation / self.zoomScale
+        }
+            .onEnded { dragInfo in
+                self.steadyPanOffset = self.steadyPanOffset + dragInfo.translation / self.zoomScale
+                print("Pan gesture ended. offset: \(self.steadyPanOffset), \(self.gesturePanOffset)")
+        }
     }
     
     func reset() {

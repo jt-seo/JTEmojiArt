@@ -54,6 +54,24 @@ extension CGPoint {
     }
 }
 
+extension CGSize {
+    static func - (_ a: CGSize, _ b: CGSize) -> CGSize {
+        return CGSize(width: a.width - b.width, height: a.height - b.height)
+    }
+    
+    static func + (_ a: CGSize, _ b: CGSize) -> CGSize {
+        return CGSize(width: a.width + b.width, height: a.height + b.height)
+    }
+    
+    static func * (_ a: CGSize, _ number: CGFloat) -> CGSize {
+        return CGSize(width: a.width * number, height: a.height * number)
+    }
+    
+    static func / (_ a: CGSize, _ number: CGFloat) -> CGSize {
+        return CGSize(width: a.width / number, height: a.height / number)
+    }
+}
+
 struct AnimatableSystemFontModifier: AnimatableModifier {
     var size: CGFloat
     func body(content: Content) -> some View {
