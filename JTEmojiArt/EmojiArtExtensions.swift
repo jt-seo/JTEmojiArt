@@ -40,3 +40,16 @@ extension Array where Element: NSItemProvider {
     }
     
 }
+
+
+import SwiftUI
+
+extension CGPoint {
+    static func - (_ a: CGPoint, _ b: CGPoint) -> CGPoint {
+        return CGPoint(x: a.x - b.x, y: a.y - b.y)
+    }
+    
+    static func + (_ a: CGPoint, _ b: CGPoint) -> CGPoint {
+        return CGPoint(x: a.x + b.x, y: a.y + b.y)
+    }
+}

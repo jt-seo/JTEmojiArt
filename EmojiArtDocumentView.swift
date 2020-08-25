@@ -21,25 +21,30 @@ struct EmojiArtDocumentView: View {
                     }
                 }
             }
-            ZStack {
-                Color.green
-                .overlay(
-                    Group {
-                        if self.document.backgroundImage != nil {
-                            Image(uiImage: self.document.backgroundImage!)
-                                .resizable()
+            GeometryReader { geometry in
+                ZStack {
+                    Color.green
+                    .overlay(
+                        Group {
+                            if self.document.backgroundImage != nil {
+                                Image(uiImage: self.document.backgroundImage!)
+                                    .resizable()
+                            }
                         }
+                    )
+                    .edgesIgnoringSafeArea([.bottom, .horizontal])
+                    .onDrop(of: ["public.image", "public.plain-text"], isTargeted: nil) { providers, location in
+                        // convert from the global coordinate to view coordinate.
+                        let origin = geometry.frame(in: .global).origin // the origin of this geometry in the global coordinate system.
+                        let location = location - origin
+                        return self.drop(providers: providers, location: location)
                     }
-                )
-                .edgesIgnoringSafeArea([.bottom, .horizontal])
-                .onDrop(of: ["public.image", "public.plain-text"], isTargeted: nil) { providers, location in
-                    return self.drop(providers: providers, location: location)
-                }
-                
-                ForEach(document.emojis) {emoji in
-                    Text(emoji.text)
-                        .position(emoji.position)
-                        .font(self.document.fontSize(for: emoji))
+                    
+                    ForEach(self.document.emojis) {emoji in
+                        Text(emoji.text)
+                            .position(emoji.position)
+                            .font(self.document.fontSize(for: emoji))
+                    }
                 }
             }
         }
