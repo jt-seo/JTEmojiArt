@@ -10,8 +10,29 @@ import SwiftUI
 
 class EmojiArtDocument: ObservableObject {
     static var palette = "🇰🇷😓🖐👀☘️🍎🍌🏓"
-    @Published private var emojiArt = EmojiArt()
+    @Published private var emojiArt: EmojiArt {
+        didSet {
+            print("didSet")
+            if let json = emojiArt.json {
+                print(json)
+                UserDefaults.standard.set(json, forKey: jsonKeyName)
+            }
+        }
+    }
     @Published private(set) var backgroundImage: UIImage?
+    
+    init () {
+        if let data = UserDefaults.standard.data(forKey: jsonKeyName), let newEmojiArt = EmojiArt(json: data) {
+            emojiArt = newEmojiArt
+            print("imageUrl: \(emojiArt.backgroundImageURL?.absoluteString ?? "nil")")
+            fetchBackgroundImage(url: emojiArt.backgroundImageURL)
+        }
+        else {
+            emojiArt = EmojiArt()
+        }
+    }
+    
+    private let jsonKeyName = "EmojiArtDocument.Untitled"
     
     func setBackgroundImageURL(url: URL?) { // This function might be called from the background queue.
         self.emojiArt.backgroundImageURL = url?.imageURL
