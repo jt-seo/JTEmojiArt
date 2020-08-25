@@ -9,9 +9,15 @@
 import SwiftUI
 
 struct EmojiArtDocumentView: View {
-    @ObservedObject var document: EmojiArtDocument
+    @ObservedObject private(set) var document: EmojiArtDocument
     
-    @State var zoomScale: CGFloat = 1.0
+    @State private var steadyZoomScale: CGFloat = 1.0
+    @GestureState private var gestureZoomScale: CGFloat = 1.0
+    
+    private var zoomScale: CGFloat {
+        print("zoomScale: \(steadyZoomScale), \(gestureZoomScale)")
+        return steadyZoomScale * gestureZoomScale
+    }
 
     var body: some View {
         VStack {
@@ -46,6 +52,7 @@ struct EmojiArtDocumentView: View {
                 }
                 .clipped()
                 .gesture(self.fitToZoom(size: geometry.size))
+                .gesture(self.gestureZoom())
             }
         }
     }
@@ -56,6 +63,7 @@ struct EmojiArtDocumentView: View {
         // set background image url.
         var found = providers.loadProviderItem(ofType: URL.self) { url in
             self.document.setBackgroundImageURL(url: url)
+            self.resetZoomScale()
         }
         if (!found) {
             found = providers.loadProviderItem(ofType: String.self) { text in
@@ -72,9 +80,23 @@ struct EmojiArtDocumentView: View {
                 if let image = self.document.backgroundImage, image.size.width > 0 && image.size.height > 0 {
                     let hZoom = size.width / image.size.width
                     let vZoom = size.height / image.size.height
-                    self.zoomScale = min(hZoom, vZoom)
+                    self.steadyZoomScale = min(hZoom, vZoom)
                 }
         }
+    }
+    
+    func gestureZoom() -> some Gesture {
+        return MagnificationGesture()
+            .updating($gestureZoomScale) { latestScale, gestureZoomScale, transaction in
+                gestureZoomScale = latestScale
+        }
+            .onEnded { finalScale in
+                self.steadyZoomScale *= finalScale
+        }
+    }
+    
+    func resetZoomScale() {
+        self.steadyZoomScale = 1.0
     }
     
     struct OptionalImage: View {
