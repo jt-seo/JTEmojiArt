@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  EmojiArtDocumentView.swift
 //  JTEmojiArt
 //
 //  Created by JT3 on 2020/08/25.
@@ -8,14 +8,15 @@
 
 import SwiftUI
 
-struct ContentView: View {
+struct EmojiArtDocumentView: View {
+    private var emojiArt: EmojiArtDocument
     var body: some View {
-        Text("Hello, World!")
+        Text("Hello, World!!")
     }
 }
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        ContentView()
+        EmojiArtDocumentView(emojiArt: EmojiArtDocument())
     }
 }
