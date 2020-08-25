@@ -15,7 +15,6 @@ struct EmojiArtDocumentView: View {
     @GestureState private var gestureZoomScale: CGFloat = 1.0
     
     private var zoomScale: CGFloat {
-        print("zoomScale: \(steadyZoomScale), \(gestureZoomScale)")
         return steadyZoomScale * gestureZoomScale
     }
 
@@ -26,7 +25,8 @@ struct EmojiArtDocumentView: View {
                     Text(text)
                         .font(Font.system(size: self.defaultEmojiFontSize))
                         .onDrag {
-                            NSItemProvider(object: text as NSString)
+                            print("ondrag: \(text)")
+                            return NSItemProvider(object: text as NSString)
                     }
                 }
             }
@@ -47,13 +47,17 @@ struct EmojiArtDocumentView: View {
                     ForEach(self.document.emojis) {emoji in
                         Text(emoji.text)
                             .position(emoji.position)
-                            .font(self.document.fontSize(for: emoji))
+                            .animatableSystemFont(size: self.document.fontSize(for: emoji) * self.zoomScale)
                     }
                 }
                 .clipped()
-                .gesture(self.fitToZoom(size: geometry.size))
+                .gesture(self.doubleTapToZoom(size: geometry.size))
                 .gesture(self.gestureZoom())
             }
+            Button("Reset") {
+                self.reset()
+            }
+            .font(Font.system(size: self.defaultEmojiFontSize))
         }
     }
     
@@ -73,15 +77,22 @@ struct EmojiArtDocumentView: View {
         return found
     }
     
-    func fitToZoom(size: CGSize) -> some Gesture {
+    func doubleTapToZoom(size: CGSize) -> some Gesture {
         TapGesture(count: 2)
             .onEnded {
-                print("fitToZoom")
-                if let image = self.document.backgroundImage, image.size.width > 0 && image.size.height > 0 {
-                    let hZoom = size.width / image.size.width
-                    let vZoom = size.height / image.size.height
-                    self.steadyZoomScale = min(hZoom, vZoom)
+                withAnimation(.linear) {
+                    self.zoomToFit(size: size)
                 }
+        }
+    }
+    
+    @State private var toggleFitToWindow: Bool = false
+    func zoomToFit(size: CGSize) {
+        if let image = document.backgroundImage, image.size.width > 0 && image.size.height > 0 {
+            let hZoom = size.width / image.size.width
+            let vZoom = size.height / image.size.height
+            steadyZoomScale = toggleFitToWindow ? max(hZoom, vZoom) : min(hZoom, vZoom)
+            toggleFitToWindow.toggle()
         }
     }
     
@@ -91,12 +102,19 @@ struct EmojiArtDocumentView: View {
                 gestureZoomScale = latestScale
         }
             .onEnded { finalScale in
+                print("MagnificationZoom ended.")
                 self.steadyZoomScale *= finalScale
         }
     }
     
     func resetZoomScale() {
-        self.steadyZoomScale = 1.0
+        steadyZoomScale = 1.0
+        toggleFitToWindow = false
+    }
+    
+    func reset() {
+        resetZoomScale()
+        document.reset()
     }
     
     struct OptionalImage: View {

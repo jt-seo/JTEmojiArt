@@ -53,3 +53,21 @@ extension CGPoint {
         return CGPoint(x: a.x + b.x, y: a.y + b.y)
     }
 }
+
+struct AnimatableSystemFontModifier: AnimatableModifier {
+    var size: CGFloat
+    func body(content: Content) -> some View {
+        content.font(Font.system(size: CGFloat(size) ))
+    }
+    
+    var animatableData: CGFloat {
+        get { size }
+        set { size = newValue }
+    }
+}
+
+extension View {
+    func animatableSystemFont(size: CGFloat) -> some View {
+        return modifier(AnimatableSystemFontModifier(size: size))
+    }
+}

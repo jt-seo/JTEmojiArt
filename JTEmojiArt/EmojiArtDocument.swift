@@ -62,8 +62,13 @@ class EmojiArtDocument: ObservableObject {
         emojiArt.emojis
     }
     
-    func fontSize(for emoji: EmojiArt.Emoji) -> Font {
-        Font.system(size: CGFloat(emoji.size))
+    func fontSize(for emoji: EmojiArt.Emoji) -> CGFloat {
+        CGFloat(emoji.size)
+    }
+    
+    func reset() {
+        backgroundImage = nil
+        emojiArt = EmojiArt()
     }
 }
 
