@@ -16,21 +16,32 @@ struct EmojiArtDocumentView: View {
                 ForEach (EmojiArtDocument.palette.map { String($0) }, id: \.self) { text in
                     Text(text)
                         .font(Font.system(size: self.defaultEmojiFontSize))
+                        .onDrag {
+                            NSItemProvider(object: text as NSString)
+                    }
                 }
             }
-            Color.green
+            ZStack {
+                Color.green
                 .overlay(
                     Group {
                         if self.document.backgroundImage != nil {
                             Image(uiImage: self.document.backgroundImage!)
-                                //.resizable()
+                                .resizable()
                         }
                     }
                 )
                 .edgesIgnoringSafeArea([.bottom, .horizontal])
-                .onDrop(of: ["public.image"], isTargeted: nil) { providers, location in
+                .onDrop(of: ["public.image", "public.plain-text"], isTargeted: nil) { providers, location in
                     return self.drop(providers: providers, location: location)
                 }
+                
+                ForEach(document.emojis) {emoji in
+                    Text(emoji.text)
+                        .position(emoji.position)
+                        .font(self.document.fontSize(for: emoji))
+                }
+            }
         }
     }
     
@@ -38,12 +49,15 @@ struct EmojiArtDocumentView: View {
     
     func drop(providers: [NSItemProvider], location: CGPoint) -> Bool {
         // set background image url.
-        for provider in providers {
-            _ = provider.loadObject(ofClass: URL.self, completionHandler: {url, _  in
-                self.document.setBackgroundImageURL(url: url)
-            })
+        var found = providers.loadProviderItem(ofType: URL.self) { url in
+            self.document.setBackgroundImageURL(url: url)
         }
-        return false
+        if (!found) {
+            found = providers.loadProviderItem(ofType: String.self) { text in
+                self.document.addEmoji(text: text, location: location, size: self.defaultEmojiFontSize)
+            }
+        }
+        return found
     }
 }
 

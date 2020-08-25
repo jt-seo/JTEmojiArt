@@ -14,11 +14,9 @@ class EmojiArtDocument: ObservableObject {
     @Published private(set) var backgroundImage: UIImage?
     
     func setBackgroundImageURL(url: URL?) { // This function might be called from the background queue.
-        DispatchQueue.main.async {
-            self.emojiArt.backgroundImageURL = url?.imageURL
-            print("ImageUrl: \(self.emojiArt.backgroundImageURL?.absoluteString ?? "empty")")
-            self.fetchBackgroundImage(url: url)
-        }
+        self.emojiArt.backgroundImageURL = url?.imageURL
+        print("ImageUrl: \(self.emojiArt.backgroundImageURL?.absoluteString ?? "empty")")
+        self.fetchBackgroundImage(url: url)
     }
     
     private func fetchBackgroundImage(url: URL?) {
@@ -33,5 +31,23 @@ class EmojiArtDocument: ObservableObject {
                 }
             }
         }
+    }
+    
+    func addEmoji(text: String, location: CGPoint, size: CGFloat) {
+        emojiArt.addEmoji(text: text, x: Int(location.x), y: Int(location.y), size: Int(size))
+    }
+    
+    var emojis: [EmojiArt.Emoji] {
+        emojiArt.emojis
+    }
+    
+    func fontSize(for emoji: EmojiArt.Emoji) -> Font {
+        Font.system(size: CGFloat(emoji.size))
+    }
+}
+
+extension EmojiArt.Emoji {
+    var position: CGPoint {
+        return CGPoint(x: CGFloat(x), y: CGFloat(y))
     }
 }

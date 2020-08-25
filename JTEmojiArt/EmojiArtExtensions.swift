@@ -22,3 +22,21 @@ extension URL {
         return self
     }
 }
+
+extension Array where Element: NSItemProvider {
+    func loadProviderItem<T> (ofType: T.Type, completeHandler: @escaping (T) -> Void) -> Bool where T: _ObjectiveCBridgeable, T._ObjectiveCType: NSItemProviderReading {
+        var found = false
+        if let provider = first(where: {$0.canLoadObject(ofClass: ofType)}) {
+            found = true
+            _ = provider.loadObject(ofClass: ofType) { item, error in
+                if let item = item {
+                    DispatchQueue.main.async {
+                        completeHandler(item)
+                    }
+                }
+            }
+        }
+        return found
+    }
+    
+}
