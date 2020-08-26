@@ -53,12 +53,30 @@ struct EmojiArtDocumentView: View {
                     
                     ForEach(self.document.emojis) {emoji in
                         Text(emoji.text)
+                            .padding(5)
+                            .emojiSelectEffect(selected: self.document.isSelected(emoji: emoji))
                             .position(emoji.position)
                             .animatableSystemFont(size: self.document.fontSize(for: emoji) * self.zoomScale)
+                            .offset(self.document.isSelected(emoji: emoji) ? self.emojiMoveOffset : .zero)
+                            .onTapGesture {
+                                self.document.selectEmoji(emoji: emoji)
+                            }
+                        
+                            
+//                        ZStack {
+//                            Text(emoji.text)
+//                            .position(emoji.position)
+//                            .animatableSystemFont(size: self.document.fontSize(for: emoji) * self.zoomScale)
+//
+//                            Circle().stroke(lineWidth: 5).foregroundColor(.red)
+//                        }
                     }
                 }
                 .gesture(self.panToMoveDocument())
                 .gesture(self.doubleTapToZoom(size: geometry.size))
+                .onTapGesture {
+                    self.document.deSelectAll()
+                }
             }
             .clipped()
             .gesture(self.gestureZoom())
@@ -123,13 +141,37 @@ struct EmojiArtDocumentView: View {
     }
     
     func panToMoveDocument() -> some Gesture {
-        return DragGesture()
-            .updating($gesturePanOffset) { dragInfo, gesturePanOffset, transaction in
-                gesturePanOffset = dragInfo.translation / self.zoomScale
+        emojiPanGesture().simultaneously(with: backgroundPanGesture())
+    }
+    
+    @GestureState private var emojiMoveOffset: CGSize = .zero
+    func emojiPanGesture() -> some Gesture {
+        DragGesture()
+            .updating($emojiMoveOffset) { dragInfo, emojiMoveOffset, transaction in
+                if (self.document.selectedEmojiCount > 0) {
+                    emojiMoveOffset = dragInfo.translation / self.zoomScale
+                }
         }
             .onEnded { dragInfo in
-                self.steadyPanOffset = self.steadyPanOffset + dragInfo.translation / self.zoomScale
-                print("Pan gesture ended. offset: \(self.steadyPanOffset), \(self.gesturePanOffset)")
+                if (self.document.selectedEmojiCount > 0) {
+                    self.document.moveSelectedEmojis(by: dragInfo.translation / self.zoomScale)
+                    print("Move(Emoji) gesture ended. offset: \(dragInfo.translation / self.zoomScale)")
+                }
+        }
+    }
+    
+    func backgroundPanGesture() -> some Gesture {
+        DragGesture()
+            .updating($gesturePanOffset) { dragInfo, gesturePanOffset, transaction in
+                if (self.document.selectedEmojiCount == 0) {
+                    gesturePanOffset = dragInfo.translation / self.zoomScale
+                }
+        }
+            .onEnded { dragInfo in
+                if (self.document.selectedEmojiCount == 0) {
+                    self.steadyPanOffset = self.steadyPanOffset + dragInfo.translation / self.zoomScale
+                    print("Pan gesture ended. offset: \(self.steadyPanOffset), \(self.gesturePanOffset)")
+                }
         }
     }
     

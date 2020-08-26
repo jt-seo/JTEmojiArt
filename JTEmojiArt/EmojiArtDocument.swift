@@ -9,10 +9,9 @@
 import SwiftUI
 
 class EmojiArtDocument: ObservableObject {
-    static var palette = "🇰🇷😓🖐👀☘️🍎🍌🏓"
+    static var palette = "🇰🇷😓🖐👀☘️🍎🍌🏓🌈🌕🌙"
     @Published private var emojiArt: EmojiArt {
         didSet {
-            print("didSet")
             if let json = emojiArt.json {
                 print(json)
                 UserDefaults.standard.set(json, forKey: jsonKeyName)
@@ -58,6 +57,18 @@ class EmojiArtDocument: ObservableObject {
         emojiArt.addEmoji(text: text, x: Int(location.x), y: Int(location.y), size: Int(size))
     }
     
+    func moveEmoji(for emoji: EmojiArt.Emoji, by offset: CGSize) {
+//        print("moveEmoji: \(offset)")
+        emojiArt.moveEmoji(for: emoji, byX: Int(offset.width), byY: Int(offset.height))
+    }
+    func moveSelectedEmojis(by offset: CGSize) {
+        print("moveSelectedEmojis: \(offset), before count: \(selectedEmojiCount)")
+        for emoji in selectedEmojis {
+            moveEmoji(for: emoji, by: offset)
+        }
+        print("moveSelectedEmojis: \(offset), after count: \(selectedEmojiCount)")
+    }
+    
     var emojis: [EmojiArt.Emoji] {
         emojiArt.emojis
     }
@@ -69,6 +80,35 @@ class EmojiArtDocument: ObservableObject {
     func reset() {
         backgroundImage = nil
         emojiArt = EmojiArt()
+    }
+    
+    @Published private(set) var selectedEmojis: Set<EmojiArt.Emoji> = []
+    func selectEmoji(emoji: EmojiArt.Emoji) {
+        print("selectEmoji")
+        if selectedEmojis.firstIndex(of: emoji) != nil {
+            selectedEmojis.remove(emoji)
+        }
+        else {
+            selectedEmojis.insert(emoji)
+        }
+    }
+    
+    func isSelected(emoji: EmojiArt.Emoji) -> Bool {
+        selectedEmojis.firstIndex(of: emoji) != nil ? true : false
+    }
+    
+    func deSelect(emoji: EmojiArt.Emoji) {
+        selectedEmojis.remove(emoji)
+        print("deSelect: \(emoji.text)")
+    }
+    
+    func deSelectAll() {
+        selectedEmojis = []
+        print("deSelectAll")
+    }
+    
+    var selectedEmojiCount: Int {
+        selectedEmojis.count
     }
 }
 

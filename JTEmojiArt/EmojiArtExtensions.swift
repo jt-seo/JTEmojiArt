@@ -72,20 +72,24 @@ extension CGSize {
     }
 }
 
-struct AnimatableSystemFontModifier: AnimatableModifier {
-    var size: CGFloat
+struct EmojiSelectEffect: ViewModifier {
+    let selected: Bool
     func body(content: Content) -> some View {
-        content.font(Font.system(size: CGFloat(size) ))
-    }
-    
-    var animatableData: CGFloat {
-        get { size }
-        set { size = newValue }
+        Group {
+            if (selected) {
+                content
+                    .padding(5)
+                    .overlay(Circle().stroke(lineWidth: 4).foregroundColor(.red))
+            }
+            else {
+                content
+            }
+        }
     }
 }
 
 extension View {
-    func animatableSystemFont(size: CGFloat) -> some View {
-        return modifier(AnimatableSystemFontModifier(size: size))
+    func emojiSelectEffect(selected: Bool) -> some View {
+        modifier(EmojiSelectEffect(selected: selected))
     }
 }

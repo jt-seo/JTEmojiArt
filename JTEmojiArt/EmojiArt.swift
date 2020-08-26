@@ -19,6 +19,13 @@ struct EmojiArt: Codable {
         emojiUniqueId += 1
     }
     
+    mutating func moveEmoji(for emoji: Emoji, byX offsetX: Int, byY offsetY: Int) {
+        if let idx = emojis.firstIndex(of: emoji) {
+            emojis[idx].x += offsetX
+            emojis[idx].y += offsetY
+        }
+    }
+    
     var json: Data? {
         try? JSONEncoder().encode(self)
     }
@@ -31,7 +38,7 @@ struct EmojiArt: Codable {
     
     init() { }
     
-    struct Emoji: Identifiable, Codable {
+    struct Emoji: Identifiable, Codable, Hashable {
         let id: Int
 
         let text: String
