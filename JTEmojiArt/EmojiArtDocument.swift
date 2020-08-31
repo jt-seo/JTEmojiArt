@@ -42,19 +42,18 @@ class EmojiArtDocument: ObservableObject {
             self.fetchBackgroundImage(url: newValue)
         }
     }
-    
+    private var backgroundImageCancellable: AnyCancellable?
     private func fetchBackgroundImage(url: URL?) {
         if let url = url {
-            backgroundImage = nil
-            print("Download image: \(url)")
-            DispatchQueue.global(qos: .userInitiated).async {
-                if let data = try? Data(contentsOf: url) {
-                    print("Image downloaded.")
-                    DispatchQueue.main.async {
-                        self.backgroundImage = UIImage(data: data)
-                    }
+            backgroundImageCancellable?.cancel()
+            backgroundImageCancellable = URLSession.shared
+                .dataTaskPublisher(for: url)
+                .map { data, urlResponse in
+                    UIImage(data: data)
                 }
-            }
+                .receive(on: DispatchQueue.main)
+                .replaceError(with: nil)    // return publisher
+                .assign(to: \.backgroundImage, on: self) // publisher.assign returns the cancellable for this subscribing.
         }
     }
     
@@ -63,7 +62,6 @@ class EmojiArtDocument: ObservableObject {
     }
     
     func moveEmoji(for emoji: EmojiArt.Emoji, by offset: CGSize) {
-//        print("moveEmoji: \(offset)")
         emojiArt.moveEmoji(for: emoji, byX: Int(offset.width), byY: Int(offset.height))
     }
     func moveSelectedEmojis(by offset: CGSize) {
@@ -83,6 +81,7 @@ class EmojiArtDocument: ObservableObject {
     }
     
     func reset() {
+        print("reset called")
         backgroundImage = nil
         emojiArt = EmojiArt()
     }

@@ -83,13 +83,14 @@ struct EmojiArtDocumentView: View {
                 }
                 .onReceive(self.document.$backgroundImage) { image in
                     if let image = image {
+                        print("onReceive: image size: \(image.size.width) * \(image.size.height)")
                         self.zoomToFit(image, size: geometry.size)
                     }
                     else {
                         print("onReceive: image is null")
                     }
                 }
-                .onDrop(of: ["public.image", "public.plain-text"], isTargeted: nil) { providers, location in
+                .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
                     // convert from the global coordinate to view coordinate.
                     let origin = geometry.frame(in: .global).origin // the origin of this geometry in the global coordinate system.
                     let location = location - origin
@@ -133,11 +134,12 @@ struct EmojiArtDocumentView: View {
     }
     
     func zoomToFit(_ image: UIImage?, size: CGSize) {
-        if let image = document.backgroundImage, image.size.width > 0 && image.size.height > 0 {
+        if let image = image, image.size.width > 0 && image.size.height > 0 {
             let hZoom = size.width / image.size.width
             let vZoom = size.height / image.size.height
             steadyZoomScale = min(hZoom, vZoom)
             steadyPanOffset = .zero
+            print("zoomToFit. scale: \(steadyZoomScale)")
         }
     }
     
