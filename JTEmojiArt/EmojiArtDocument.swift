@@ -7,18 +7,13 @@
 //
 
 import SwiftUI
+import Combine
 
 class EmojiArtDocument: ObservableObject {
-    static var palette = "🇰🇷😓🖐👀☘️🍎🍌🏓🌈🌕🌙"
-    @Published private var emojiArt: EmojiArt {
-        didSet {
-            if let json = emojiArt.json {
-                print(json)
-                UserDefaults.standard.set(json, forKey: jsonKeyName)
-            }
-        }
-    }
+    @Published private var emojiArt: EmojiArt
     @Published private(set) var backgroundImage: UIImage?
+    
+    var autoCancellable: AnyCancellable?
     
     init () {
         if let data = UserDefaults.standard.data(forKey: jsonKeyName), let newEmojiArt = EmojiArt(json: data) {
@@ -29,18 +24,28 @@ class EmojiArtDocument: ObservableObject {
         else {
             emojiArt = EmojiArt()
         }
+        
+        autoCancellable = $emojiArt.sink { emojiArt in
+            if let json = emojiArt.json {
+                UserDefaults.standard.set(json, forKey: self.jsonKeyName)
+            }
+        }
     }
     
     private let jsonKeyName = "EmojiArtDocument.Untitled"
     
-    func setBackgroundImageURL(url: URL?) { // This function might be called from the background queue.
-        self.emojiArt.backgroundImageURL = url?.imageURL
-        print("ImageUrl: \(self.emojiArt.backgroundImageURL?.absoluteString ?? "empty")")
-        self.fetchBackgroundImage(url: url)
+    var backgroundImageURL: URL? {
+        get { self.emojiArt.backgroundImageURL }
+        set {
+            self.emojiArt.backgroundImageURL = newValue
+            print("ImageUrl: \(self.emojiArt.backgroundImageURL?.absoluteString ?? "empty")")
+            self.fetchBackgroundImage(url: newValue)
+        }
     }
     
     private func fetchBackgroundImage(url: URL?) {
         if let url = url {
+            backgroundImage = nil
             print("Download image: \(url)")
             DispatchQueue.global(qos: .userInitiated).async {
                 if let data = try? Data(contentsOf: url) {
