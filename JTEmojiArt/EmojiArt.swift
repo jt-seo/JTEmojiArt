@@ -26,6 +26,14 @@ struct EmojiArt: Codable {
         }
     }
     
+    mutating func changeSize(for emoji: Emoji, by scale: Double) {
+        if let idx = emojis.firstIndex(matching: emoji) {
+            let newSize = Int(Double(emojis[idx].size) * scale)
+            print("changeSize[\(emoji.text)] from \(emoji.size) to \(newSize), scale: \(scale)")
+            emojis[idx].size = newSize
+        }
+    }
+    
     var json: Data? {
         try? JSONEncoder().encode(self)
     }

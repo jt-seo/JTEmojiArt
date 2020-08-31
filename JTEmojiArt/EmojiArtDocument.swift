@@ -78,6 +78,14 @@ class EmojiArtDocument: ObservableObject {
     func fontSize(for emoji: EmojiArt.Emoji) -> CGFloat {
         CGFloat(emoji.size)
     }
+    func changeSelectedEmojiSize(scale: CGFloat) {
+        let scale = Double(scale)
+        for emoji in selectedEmojis {
+            if isSelected(emoji: emoji) {
+                emojiArt.changeSize(for: emoji, by: Double(scale))
+            }
+        }
+    }
     
     func reset() {
         print("reset called")

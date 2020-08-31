@@ -69,7 +69,7 @@ struct EmojiArtDocumentView: View {
                                 .padding(5)
                                 .emojiSelectEffect(selected: self.document.isSelected(emoji: emoji))
                                 .position(emoji.position)
-                                .animatableSystemFont(size: self.document.fontSize(for: emoji) * self.zoomScale)
+                                .animatableSystemFont(size: self.emojiSize(for: emoji))
                                 .offset(self.document.isSelected(emoji: emoji) ? self.emojiMoveOffset : .zero)
                                 .onTapGesture {
                                     self.document.selectEmoji(emoji: emoji)
@@ -78,7 +78,8 @@ struct EmojiArtDocumentView: View {
                     }
                 }
                     .clipped()
-                    .gesture(self.gestureZoom())
+                    .simultaneousGesture(self.gestureZoom())
+                    .simultaneousGesture(self.emojiGestureZoom())
                     .simultaneousGesture(self.emojiPanGesture())
                     .simultaneousGesture(self.backgroundPanGesture())
                     .gesture(self.doubleTapToZoom(size: geometry.size))
@@ -109,6 +110,10 @@ struct EmojiArtDocumentView: View {
 //            }
 //            .font(Font.system(size: self.defaultEmojiFontSize))
         }
+    }
+    
+    func emojiSize(for emoji: EmojiArt.Emoji) -> CGFloat {
+        self.document.fontSize(for: emoji) * self.zoomScale * (document.isSelected(emoji: emoji) ? self.emojiZoomScale : 1)
     }
     
     private let defaultEmojiFontSize: CGFloat = 40
@@ -149,12 +154,32 @@ struct EmojiArtDocumentView: View {
     func gestureZoom() -> some Gesture {
         return MagnificationGesture()
             .updating($gestureZoomScale) { latestScale, gestureZoomScale, transaction in
-                gestureZoomScale = latestScale
+                if (self.document.selectedEmojiCount == 0) {
+                    gestureZoomScale = latestScale
+                }
         }
             .onEnded { finalScale in
-                print("MagnificationZoom ended. scale: \(self.steadyZoomScale), \(self.gestureZoomScale)")
-                self.steadyZoomScale *= finalScale
+                if (self.document.selectedEmojiCount == 0) {
+                    print("MagnificationZoom ended. scale: \(self.steadyZoomScale), \(self.gestureZoomScale)")
+                    self.steadyZoomScale *= finalScale
+                }
         }
+    }
+    
+    @GestureState private var emojiZoomScale: CGFloat = 1.0
+    private func emojiGestureZoom() -> some Gesture {
+        return MagnificationGesture()
+            .updating($emojiZoomScale) { latestScale, emojiZoomScale, transaction in
+                if (self.document.selectedEmojiCount > 0) {
+                    emojiZoomScale = latestScale
+                }
+            }
+            .onEnded { finalScale in
+                if (self.document.selectedEmojiCount > 0) {
+                    self.document.changeSelectedEmojiSize(scale: finalScale)
+                    print("emojiGestureZoom ended. scale: \(finalScale)")
+                }
+            }
     }
     
     func resetZoomScale() {
