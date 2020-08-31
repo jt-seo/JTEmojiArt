@@ -20,7 +20,7 @@ struct EmojiArt: Codable {
     }
     
     mutating func moveEmoji(for emoji: Emoji, byX offsetX: Int, byY offsetY: Int) {
-        if let idx = emojis.firstIndex(of: emoji) {
+        if let idx = emojis.firstIndex(matching: emoji) {
             emojis[idx].x += offsetX
             emojis[idx].y += offsetY
         }

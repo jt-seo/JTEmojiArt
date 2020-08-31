@@ -108,7 +108,28 @@ struct Spinning: ViewModifier {
 
 extension View {
     func spinning() -> some View {
-        //modifier(Spinning(isVisible: isVisible))
         modifier(Spinning())
+    }
+}
+
+extension Collection where Element: Identifiable {
+    func firstIndex (matching item: Element) -> Int? {
+        for (index, element) in self.enumerated() {
+            if element.id == item.id {
+                return index
+            }
+        }
+        return nil
+    }
+    func first (matching item: Element) -> Element? {
+        first { $0.id == item.id }
+    }
+}
+
+extension Set where Element: Identifiable {
+    mutating func remove (matching item: Element) -> Void {
+        if let item = first(matching: item) {
+            self.remove(item)
+        }
     }
 }

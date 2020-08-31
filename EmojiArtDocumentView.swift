@@ -44,6 +44,9 @@ struct EmojiArtDocumentView: View {
                         }
                     }
                 }
+                .onAppear {
+                    self.chosenPalette = self.document.defaultPalette
+                }
             }
             
             GeometryReader { geometry in
@@ -76,27 +79,27 @@ struct EmojiArtDocumentView: View {
                 }
                     .clipped()
                     .gesture(self.gestureZoom())
-                .gesture(self.panToMoveDocument())
-                .gesture(self.doubleTapToZoom(size: geometry.size))
-                .onTapGesture {
-                    self.document.deSelectAll()
-                }
-                .onReceive(self.document.$backgroundImage) { image in
-                    if let image = image {
-                        print("onReceive: image size: \(image.size.width) * \(image.size.height)")
-                        self.zoomToFit(image, size: geometry.size)
+                    .simultaneousGesture(self.emojiPanGesture())
+                    .simultaneousGesture(self.backgroundPanGesture())
+                    .gesture(self.doubleTapToZoom(size: geometry.size))
+                    .onTapGesture {
+                        self.document.deSelectAll()
                     }
-                    else {
-                        print("onReceive: image is null")
+                    .onReceive(self.document.$backgroundImage) { image in
+                        if let image = image {
+                            print("onReceive: image size: \(image.size.width) * \(image.size.height)")
+                            self.zoomToFit(image, size: geometry.size)
+                        }
+                        else {
+                            print("onReceive: image is null")
+                        }
                     }
-                }
-                .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
-                    // convert from the global coordinate to view coordinate.
-                    let origin = geometry.frame(in: .global).origin // the origin of this geometry in the global coordinate system.
-                    let location = location - origin
-                    return self.drop(providers: providers, location: location)
-                }
-
+                    .onDrop(of: ["public.image", "public.text"], isTargeted: nil) { providers, location in
+                        // convert from the global coordinate to view coordinate.
+                        let origin = geometry.frame(in: .global).origin // the origin of this geometry in the global coordinate system.
+                        let location = location - origin
+                        return self.drop(providers: providers, location: location)
+                    }
             }
             
             

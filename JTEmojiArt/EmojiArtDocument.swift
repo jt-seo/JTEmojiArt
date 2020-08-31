@@ -65,11 +65,10 @@ class EmojiArtDocument: ObservableObject {
         emojiArt.moveEmoji(for: emoji, byX: Int(offset.width), byY: Int(offset.height))
     }
     func moveSelectedEmojis(by offset: CGSize) {
-        print("moveSelectedEmojis: \(offset), before count: \(selectedEmojiCount)")
         for emoji in selectedEmojis {
             moveEmoji(for: emoji, by: offset)
         }
-        print("moveSelectedEmojis: \(offset), after count: \(selectedEmojiCount)")
+        print("moveSelectedEmojis: \(offset), count: \(selectedEmojiCount)")
     }
     
     var emojis: [EmojiArt.Emoji] {
@@ -88,22 +87,22 @@ class EmojiArtDocument: ObservableObject {
     
     @Published private(set) var selectedEmojis: Set<EmojiArt.Emoji> = []
     func selectEmoji(emoji: EmojiArt.Emoji) {
-        print("selectEmoji")
-        if selectedEmojis.firstIndex(of: emoji) != nil {
-            selectedEmojis.remove(emoji)
-        }
-        else {
+        if selectedEmojis.firstIndex(matching: emoji) == nil {
             selectedEmojis.insert(emoji)
         }
+        else {
+            selectedEmojis.remove(matching: emoji)
+        }
+        print("selectEmoji. count: \(selectedEmojiCount)")
     }
     
     func isSelected(emoji: EmojiArt.Emoji) -> Bool {
-        selectedEmojis.firstIndex(of: emoji) != nil ? true : false
+        selectedEmojis.firstIndex(matching: emoji) != nil
     }
     
     func deSelect(emoji: EmojiArt.Emoji) {
-        selectedEmojis.remove(emoji)
-        print("deSelect: \(emoji.text)")
+        selectedEmojis.remove(matching: emoji)
+        print("deSelect: \(emoji.text), count: \(selectedEmojiCount)")
     }
     
     func deSelectAll() {
