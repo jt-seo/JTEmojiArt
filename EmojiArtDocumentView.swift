@@ -39,7 +39,8 @@ struct EmojiArtDocumentView: View {
     var body: some View {
         VStack {
             HStack {
-                PaletteChooser(document: self.document, chosenPalette: $chosenPalette)
+                PaletteChooser(chosenPalette: $chosenPalette)
+                    .environmentObject(self.document)
                 ScrollView(.horizontal) {
                     HStack {
                         ForEach (chosenPalette.map { String($0) }, id: \.self) { text in

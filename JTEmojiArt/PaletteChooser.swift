@@ -9,8 +9,9 @@
 import SwiftUI
 
 struct PaletteChooser: View {
-    private(set) var document: EmojiArtDocument
+    @EnvironmentObject var document: EmojiArtDocument
     @Binding var chosenPalette: String
+    @State var showEmojiEditView: Bool = false
 
     var body: some View {
         HStack {
@@ -22,6 +23,15 @@ struct PaletteChooser: View {
                 EmptyView()
             })
             Text(document.paletteNames[chosenPalette] ?? "nil")
+            Image(systemName: "keyboard").imageScale(.large)
+                .popover(isPresented: $showEmojiEditView) {
+                    PaletteEditor(chosenPalette: self.$chosenPalette)
+                        .environmentObject(self.document)
+                        .frame(minWidth: 300, minHeight: 500)
+                }
+                .onTapGesture {
+                    self.showEmojiEditView = true
+                }
         }
         .fixedSize()
     }
@@ -29,6 +39,7 @@ struct PaletteChooser: View {
 
 struct PaletteChooser_Previews: PreviewProvider {
     static var previews: some View {
-        PaletteChooser(document: EmojiArtDocument(), chosenPalette: Binding.constant(""))
+        PaletteChooser(chosenPalette: Binding.constant(""))
+            .environmentObject(EmojiArtDocument())
     }
 }
