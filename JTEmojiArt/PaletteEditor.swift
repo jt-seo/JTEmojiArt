@@ -11,12 +11,22 @@ import SwiftUI
 struct PaletteEditor: View {
     @EnvironmentObject var document: EmojiArtDocument
     @Binding var chosenPalette: String
+    @Binding var showPaletteEditor: Bool
     @State private var paletteName: String = ""
     @State private var emojiToAdd: String = ""
     
     var body: some View {
         VStack(spacing: 0) {
-            Text("Palette Editor").font(.headline).padding()
+            ZStack {
+                Text("Palette Editor").font(.headline).padding()
+                HStack {
+                    Spacer()
+                    Text("Done").padding()
+                        .onTapGesture {
+                            self.showPaletteEditor = false
+                        }
+                }
+            }
             Divider()
             Form {
                 Section {

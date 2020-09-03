@@ -25,7 +25,7 @@ struct PaletteChooser: View {
             Text(document.paletteNames[chosenPalette] ?? "nil")
             Image(systemName: "keyboard").imageScale(.large)
                 .popover(isPresented: $showEmojiEditView) {
-                    PaletteEditor(chosenPalette: self.$chosenPalette)
+                    PaletteEditor(chosenPalette: self.$chosenPalette, showPaletteEditor: self.$showEmojiEditView)
                         .environmentObject(self.document)
                         .frame(minWidth: 300, minHeight: 500)
                 }
