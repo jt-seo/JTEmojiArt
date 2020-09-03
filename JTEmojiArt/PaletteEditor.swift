@@ -27,12 +27,13 @@ struct PaletteEditor: View {
                     })
                     TextField("Add Emoji", text: $emojiToAdd, onEditingChanged: { began in
                         if !began {
-                            self.document.addEmoji(self.emojiToAdd, toPalette: self.chosenPalette)
+                            self.chosenPalette = self.document.addEmoji(self.emojiToAdd, toPalette: self.chosenPalette)
                         }
                     })
-                    ForEach (chosenPalette.map { String($0) }, id: \.self) { emoji in
+                    Grid (chosenPalette.map { String($0) }, id: \.self) { emoji in
                         Text(emoji).font(Font.system(size: self.defaultEmojiFontSize))
                     }
+                    .frame(height: self.height)
                 }
             }
             .onAppear {
@@ -43,4 +44,7 @@ struct PaletteEditor: View {
     }
     
     private let defaultEmojiFontSize: CGFloat = 40
+    private var height: CGFloat {
+        CGFloat((self.chosenPalette.count / 6 + 1) * 70)
+    }
 }
