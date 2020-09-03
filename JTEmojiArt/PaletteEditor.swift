@@ -32,6 +32,9 @@ struct PaletteEditor: View {
                     })
                     Grid (chosenPalette.map { String($0) }, id: \.self) { emoji in
                         Text(emoji).font(Font.system(size: self.defaultEmojiFontSize))
+                            .onTapGesture {
+                                self.chosenPalette = self.document.removeEmoji(emoji, fromPalette: self.chosenPalette)
+                        }
                     }
                     .frame(height: self.height)
                 }
