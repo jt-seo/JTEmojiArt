@@ -16,6 +16,9 @@ struct EmojiArtDocumentView: View {
     
     @State private var steadyPanOffset: CGSize = .zero
     @GestureState private var gesturePanOffset: CGSize = .zero
+    
+    @State private var chosenPalette: String = ""
+
     private var panOffset: CGSize {
         (gesturePanOffset + steadyPanOffset) * zoomScale
     }
@@ -26,6 +29,11 @@ struct EmojiArtDocumentView: View {
     
     private var isLoading: Bool {
         document.backgroundImageURL != nil && document.backgroundImage == nil
+    }
+    
+    init(document: EmojiArtDocument) {
+        self.document = document
+        _chosenPalette = State(wrappedValue: self.document.defaultPalette)
     }
 
     var body: some View {
@@ -43,9 +51,6 @@ struct EmojiArtDocumentView: View {
                             }
                         }
                     }
-                }
-                .onAppear {
-                    self.chosenPalette = self.document.defaultPalette
                 }
             }
             
@@ -237,8 +242,6 @@ struct EmojiArtDocumentView: View {
             }
         }
     }
-    
-    @State private var chosenPalette = ""
 }
 
 struct ContentView_Previews: PreviewProvider {
