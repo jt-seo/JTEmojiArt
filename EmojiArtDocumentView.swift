@@ -107,6 +107,14 @@ struct EmojiArtDocumentView: View {
                         let location = location - origin
                         return self.drop(providers: providers, location: location)
                     }
+                .alert(isPresented: self.$confirmBackgroundPaste) { Alert(
+                    title: Text("Confirm Background Paste"),
+                    message: Text("Do you really want to replace to background image to \(UIPasteboard.general.url?.absoluteString ?? "nothing")?"),
+                    primaryButton: .default(Text("OK")) {
+                        self.document.backgroundImageURL = UIPasteboard.general.url
+                    },
+                    secondaryButton: .cancel())
+                }
             }
             
             
@@ -117,8 +125,8 @@ struct EmojiArtDocumentView: View {
 //            .font(Font.system(size: self.defaultEmojiFontSize))
         }
         .navigationBarItems(trailing: Button(action: {
-            if let url = UIPasteboard.general.url {
-                self.document.backgroundImageURL = url
+            if let url = UIPasteboard.general.url, url != self.document.backgroundImageURL {
+                self.confirmBackgroundPaste = true
             } else {
                 self.explainBackgroundPaste = true
             }
@@ -133,6 +141,7 @@ struct EmojiArtDocumentView: View {
     }
     
     @State private var explainBackgroundPaste = false
+    @State private var confirmBackgroundPaste = false
     
     func emojiSize(for emoji: EmojiArt.Emoji) -> CGFloat {
         self.document.fontSize(for: emoji) * self.zoomScale * (document.isSelected(emoji: emoji) ? self.emojiZoomScale : 1)

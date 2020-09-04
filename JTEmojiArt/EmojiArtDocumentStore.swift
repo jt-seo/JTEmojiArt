@@ -50,7 +50,6 @@ extension Dictionary where Key == EmojiArtDocument, Value == String {
     var asPropertyList: [String:String] {
         var uuidToName = [String:String]()
         for (key, value) in self {
-            print(key)
             uuidToName[key.id.uuidString] = value
         }
         return uuidToName

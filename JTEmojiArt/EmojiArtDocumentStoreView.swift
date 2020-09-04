@@ -20,6 +20,11 @@ struct EmojiArtDocumentStoreView: View {
                             Text(self.store.name(for: document))
                         }
                 }
+                .onDelete { indexSet in // Swipe from right to left will invoke onDelete.
+                    indexSet.map { self.store.documents[$0] }.forEach { document in
+                        self.store.removeDocument(document)
+                    }
+                }
             }
             .navigationBarTitle(Text("Emoji Art"))
             .navigationBarItems(leading: Button(action: {
