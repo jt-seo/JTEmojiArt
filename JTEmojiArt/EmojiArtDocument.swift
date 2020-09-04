@@ -13,6 +13,9 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
     @Published private var emojiArt: EmojiArt
     @Published private(set) var backgroundImage: UIImage?
     
+    @Published var steadyZoomScale: CGFloat = 1.0
+    @Published var steadyPanOffset: CGSize = .zero
+    
     var autoCancellable: AnyCancellable?
     
     static func == (lhs: EmojiArtDocument, rhs: EmojiArtDocument) -> Bool {
@@ -58,18 +61,32 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
             self.fetchBackgroundImage(url: newValue)
         }
     }
-    private var backgroundImageCancellable: AnyCancellable?
+    private var dataTask: URLSessionDataTask?
     private func fetchBackgroundImage(url: URL?) {
         if let url = url {
-            backgroundImageCancellable?.cancel()
-            backgroundImageCancellable = URLSession.shared
-                .dataTaskPublisher(for: url)
-                .map { data, urlResponse in
-                    UIImage(data: data)
+            print("Fetch image: \(url)")
+//            backgroundImageCancellable = URLSession.shared
+//                .dataTaskPublisher(for: url)
+//                .map { data, urlResponse in
+//                    print("data map")
+//                    return UIImage(data: data)
+//                }
+//                .receive(on: DispatchQueue.main)
+//                .replaceError(with: nil)    // return publisher
+//                .assign(to: \.backgroundImage, on: self) // publisher.assign returns the cancellable for this subscribing.
+            
+            dataTask?.cancel()
+            let session = URLSession.shared
+            dataTask = session.dataTask(with: url) { (data, urlResponse, error) in
+                if let data = data {
+                    print("data received")
+                    print(data)
+                    DispatchQueue.main.async {
+                        self.backgroundImage = UIImage(data: data)
+                    }
                 }
-                .receive(on: DispatchQueue.main)
-                .replaceError(with: nil)    // return publisher
-                .assign(to: \.backgroundImage, on: self) // publisher.assign returns the cancellable for this subscribing.
+            }
+            dataTask?.resume()
         }
     }
     

@@ -11,20 +11,17 @@ import SwiftUI
 struct EmojiArtDocumentView: View {
     @ObservedObject private(set) var document: EmojiArtDocument
     
-    @State private var steadyZoomScale: CGFloat = 1.0
     @GestureState private var gestureZoomScale: CGFloat = 1.0
-    
-    @State private var steadyPanOffset: CGSize = .zero
     @GestureState private var gesturePanOffset: CGSize = .zero
     
     @State private var chosenPalette: String = ""
 
     private var panOffset: CGSize {
-        (gesturePanOffset + steadyPanOffset) * zoomScale
+        (gesturePanOffset + document.steadyPanOffset) * zoomScale
     }
     
     private var zoomScale: CGFloat {
-        return steadyZoomScale * gestureZoomScale
+        return document.steadyZoomScale * gestureZoomScale
     }
     
     private var isLoading: Bool {
@@ -105,6 +102,8 @@ struct EmojiArtDocumentView: View {
                         // convert from the global coordinate to view coordinate.
                         let origin = geometry.frame(in: .global).origin // the origin of this geometry in the global coordinate system.
                         let location = location - origin
+                        
+                        print("onDrop: \(location), origin: \(origin)")
                         return self.drop(providers: providers, location: location)
                     }
                 .alert(isPresented: self.$confirmBackgroundPaste) { Alert(
@@ -173,12 +172,12 @@ struct EmojiArtDocumentView: View {
     }
     
     func zoomToFit(_ image: UIImage?, size: CGSize) {
-        if let image = image, image.size.width > 0 && image.size.height > 0 {
+        if let image = image, image.size.width > 0 && image.size.height > 0 && size.width > 0 && size.height > 0 {
             let hZoom = size.width / image.size.width
             let vZoom = size.height / image.size.height
-            steadyZoomScale = min(hZoom, vZoom)
-            steadyPanOffset = .zero
-            print("zoomToFit. scale: \(steadyZoomScale)")
+            document.steadyZoomScale = min(hZoom, vZoom)
+            document.steadyPanOffset = .zero
+            print("zoomToFit. scale: \(document.steadyZoomScale)")
         }
     }
     
@@ -191,8 +190,8 @@ struct EmojiArtDocumentView: View {
         }
             .onEnded { finalScale in
                 if (self.document.selectedEmojiCount == 0) {
-                    print("MagnificationZoom ended. scale: \(self.steadyZoomScale), \(self.gestureZoomScale)")
-                    self.steadyZoomScale *= finalScale
+                    print("MagnificationZoom ended. scale: \(self.document.steadyZoomScale), \(self.gestureZoomScale)")
+                    self.document.steadyZoomScale *= finalScale
                 }
         }
     }
@@ -214,11 +213,7 @@ struct EmojiArtDocumentView: View {
     }
     
     func resetZoomScale() {
-        steadyZoomScale = 1.0
-    }
-    
-    func panToMoveDocument() -> some Gesture {
-        emojiPanGesture().simultaneously(with: backgroundPanGesture())
+        document.steadyZoomScale = 1.0
     }
     
     @GestureState private var emojiMoveOffset: CGSize = .zero
@@ -246,8 +241,8 @@ struct EmojiArtDocumentView: View {
         }
             .onEnded { dragInfo in
                 if (self.document.selectedEmojiCount == 0) {
-                    self.steadyPanOffset = self.steadyPanOffset + dragInfo.translation / self.zoomScale
-                    print("Pan gesture ended. offset: \(self.steadyPanOffset), \(self.gesturePanOffset)")
+                    self.document.steadyPanOffset = self.document.steadyPanOffset + dragInfo.translation / self.zoomScale
+                    print("Pan gesture ended. offset: \(self.document.steadyPanOffset), \(self.gesturePanOffset)")
                 }
         }
     }

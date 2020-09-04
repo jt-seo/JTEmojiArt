@@ -10,6 +10,7 @@ import SwiftUI
 
 struct EmojiArtDocumentStoreView: View {
     @ObservedObject var store: EmojiArtDocumentStore
+    @State private var editMode: EditMode = .inactive
 
     var body: some View {
         NavigationView {
@@ -17,7 +18,9 @@ struct EmojiArtDocumentStoreView: View {
                 ForEach(store.documents) { document in
                     NavigationLink (destination: EmojiArtDocumentView(document: document)
                         .navigationBarTitle(Text(self.store.name(for: document)))) {
-                            Text(self.store.name(for: document))
+                            EditableText(isEditing: self.editMode != EditMode.inactive, text: self.store.name(for: document)) { name in
+                                self.store.changeDocumentName(for: document, to: name)
+                            }
                         }
                 }
                 .onDelete { indexSet in // Swipe from right to left will invoke onDelete.
@@ -27,11 +30,15 @@ struct EmojiArtDocumentStoreView: View {
                 }
             }
             .navigationBarTitle(Text("Emoji Art"))
-            .navigationBarItems(leading: Button(action: {
-                self.store.addDocument()
-            }, label: {
-                Image(systemName: "bag.badge.plus")
-            }))
+            .navigationBarItems(
+                leading: Button(action: {
+                        self.store.addDocument()
+                    }, label: {
+                        Image(systemName: "bag.badge.plus")
+                    }),
+                trailing: EditButton()
+            )
+            .environment(\.editMode, self.$editMode)
         }
     }
 }
