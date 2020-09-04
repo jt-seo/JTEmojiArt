@@ -16,9 +16,9 @@ struct EmojiArtDocumentStoreView: View {
             List {
                 ForEach(store.documents) { document in
                     NavigationLink (destination: EmojiArtDocumentView(document: document)
-                                        .navigationBarTitle(Text(self.store.name(for: document)))) {
-                        Text(self.store.name(for: document))
-                    }
+                        .navigationBarTitle(Text(self.store.name(for: document)))) {
+                            Text(self.store.name(for: document))
+                        }
                 }
             }
             .navigationBarTitle(Text("Emoji Art"))

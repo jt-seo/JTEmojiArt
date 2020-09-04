@@ -116,7 +116,23 @@ struct EmojiArtDocumentView: View {
 //            }
 //            .font(Font.system(size: self.defaultEmojiFontSize))
         }
+        .navigationBarItems(trailing: Button(action: {
+            if let url = UIPasteboard.general.url {
+                self.document.backgroundImageURL = url
+            } else {
+                self.explainBackgroundPaste = true
+            }
+        }, label: {
+            Image(systemName: "doc.on.clipboard").imageScale(.large)
+                .alert(isPresented: self.$explainBackgroundPaste) {
+                    Alert(title: Text("Background Image"),
+                          message: Text("Copy background image first and then click the button to set the background image"),
+                          dismissButton: .default(Text("OK")))
+                }
+        }))
     }
+    
+    @State private var explainBackgroundPaste = false
     
     func emojiSize(for emoji: EmojiArt.Emoji) -> CGFloat {
         self.document.fontSize(for: emoji) * self.zoomScale * (document.isSelected(emoji: emoji) ? self.emojiZoomScale : 1)

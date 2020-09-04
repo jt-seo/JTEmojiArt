@@ -31,6 +31,8 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         else {
             self.id = UUID()
         }
+        
+        let jsonKeyName = "EmojiArtDocument.\(self.id.uuidString)"
 
         if let data = UserDefaults.standard.data(forKey: jsonKeyName), let newEmojiArt = EmojiArt(json: data) {
             emojiArt = newEmojiArt
@@ -43,12 +45,10 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         
         autoCancellable = $emojiArt.sink { emojiArt in
             if let json = emojiArt.json {
-                UserDefaults.standard.set(json, forKey: self.jsonKeyName)
+                UserDefaults.standard.set(json, forKey: jsonKeyName)
             }
         }
     }
-    
-    private let jsonKeyName = "EmojiArtDocument.Untitled"
     
     var backgroundImageURL: URL? {
         get { self.emojiArt.backgroundImageURL }
