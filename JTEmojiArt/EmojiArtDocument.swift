@@ -9,13 +9,29 @@
 import SwiftUI
 import Combine
 
-class EmojiArtDocument: ObservableObject {
+class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
     @Published private var emojiArt: EmojiArt
     @Published private(set) var backgroundImage: UIImage?
     
     var autoCancellable: AnyCancellable?
     
-    init () {
+    static func == (lhs: EmojiArtDocument, rhs: EmojiArtDocument) -> Bool {
+        lhs.id == rhs.id
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+    
+    let id: UUID
+    
+    init (id: UUID? = nil) {
+        if let id = id {
+            self.id = id
+        }
+        else {
+            self.id = UUID()
+        }
+
         if let data = UserDefaults.standard.data(forKey: jsonKeyName), let newEmojiArt = EmojiArt(json: data) {
             emojiArt = newEmojiArt
             print("imageUrl: \(emojiArt.backgroundImageURL?.absoluteString ?? "nil")")
