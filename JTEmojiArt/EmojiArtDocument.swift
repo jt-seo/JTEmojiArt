@@ -40,7 +40,7 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         if let data = UserDefaults.standard.data(forKey: jsonKeyName), let newEmojiArt = EmojiArt(json: data) {
             emojiArt = newEmojiArt
             print("imageUrl: \(emojiArt.backgroundImageURL?.absoluteString ?? "nil")")
-            fetchBackgroundImage(url: emojiArt.backgroundImageURL)
+            fetchBackgroundImage()
         }
         else {
             emojiArt = EmojiArt()
@@ -53,17 +53,36 @@ class EmojiArtDocument: ObservableObject, Hashable, Identifiable {
         }
     }
     
+    var url: URL? {
+        didSet { self.save(self.emojiArt) }
+    }
+    init (url: URL) {
+        self.id = UUID()
+        self.url = url
+        emojiArt = EmojiArt(json: try? Data(contentsOf: url)) ?? EmojiArt()
+        fetchBackgroundImage()
+        autoCancellable = $emojiArt.sink { emojiArt in
+            self.save(emojiArt)
+        }
+    }
+    
+    private func save(_ emojiArt: EmojiArt) {
+        if let url = url {
+            try? emojiArt.json?.write(to: url)
+        }
+    }
+    
     var backgroundImageURL: URL? {
         get { self.emojiArt.backgroundImageURL }
         set {
             self.emojiArt.backgroundImageURL = newValue
             print("ImageUrl: \(self.emojiArt.backgroundImageURL?.absoluteString ?? "empty")")
-            self.fetchBackgroundImage(url: newValue)
+            self.fetchBackgroundImage()
         }
     }
     private var dataTask: URLSessionDataTask?
-    private func fetchBackgroundImage(url: URL?) {
-        if let url = url {
+    private func fetchBackgroundImage() {
+        if let url = self.backgroundImageURL {
             print("Fetch image: \(url)")
 //            backgroundImageCancellable = URLSession.shared
 //                .dataTaskPublisher(for: url)
