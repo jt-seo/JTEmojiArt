@@ -123,7 +123,7 @@ struct EmojiArtDocumentView: View {
 //            }
 //            .font(Font.system(size: self.defaultEmojiFontSize))
         }
-        .navigationBarItems(trailing: Button(action: {
+        .navigationBarItems(leading: pickImage, trailing: Button(action: {
             if let url = UIPasteboard.general.url, url != self.document.backgroundImageURL {
                 self.confirmBackgroundPaste = true
             } else {
@@ -137,6 +137,17 @@ struct EmojiArtDocumentView: View {
                           dismissButton: .default(Text("OK")))
                 }
         }))
+    }
+    
+    @State private var showImagePicker = false
+    
+    var pickImage: some View {
+        Image(systemName: "photo").imageScale(.large).foregroundColor(.accentColor).onTapGesture {
+            showImagePicker = true
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker()
+        }
     }
     
     @State private var explainBackgroundPaste = false
